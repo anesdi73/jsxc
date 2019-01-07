@@ -106,7 +106,8 @@ jsxc.Message.prototype.save = function() {
 
       var ctx = canvas.getContext("2d");
       var img = new Image();
-
+      img.crossOrigin = "anonymous";
+      
       img.onload = function() {
          if (img.height > img.width) {
             sHeight = img.width;
