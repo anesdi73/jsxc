@@ -1,0 +1,14 @@
+{
+  "name": "strophejs-plugin-ibb",
+  "homepage": "https://github.com/strophe/strophejs-plugin-ibb",
+  "_release": "9ed8f5416c",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "9ed8f5416c7b904b59d25696fa182c2382831446"
+  },
+  "_source": "git://github.com/strophe/strophejs-plugin-ibb.git",
+  "_target": "*",
+  "_originalSource": "git://github.com/strophe/strophejs-plugin-ibb.git",
+  "_direct": true
+}

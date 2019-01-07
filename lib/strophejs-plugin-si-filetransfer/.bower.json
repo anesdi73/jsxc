@@ -1,0 +1,14 @@
+{
+  "name": "strophejs-plugin-si-filetransfer",
+  "homepage": "https://github.com/strophe/strophejs-plugin-si-filetransfer",
+  "_release": "3826cb9806",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "3826cb980629f6725f080996b0f9adb79f149b38"
+  },
+  "_source": "git://github.com/strophe/strophejs-plugin-si-filetransfer.git",
+  "_target": "*",
+  "_originalSource": "git://github.com/strophe/strophejs-plugin-si-filetransfer.git",
+  "_direct": true
+}

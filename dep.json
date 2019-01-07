@@ -124,5 +124,17 @@
      "file": "lib/emojione/lib/js/emojione.js",
      "license": "CC-BY 4.0",
      "url": "http://emojione.com"
-  }
+  },
+  {
+		"name": "strophe.js/si-transfer",
+		"file": "lib/strophejs-plugin-si-filetransfer/strophe.si-filetransfer.js",
+		"license": "MPL v2.0",
+		"url": "http://github.com/strophe/strophejs-plugin-si-filetransfer"
+	},
+	{
+		"name": "strophe.js/ibb",
+		"file": "lib/strophejs-plugin-ibb/strophe.ibb.js",
+		"license": "MPL v2.0",
+		"url": "http://github.com/strophe/strophejs-plugin-ibb"
+	}
  ]
