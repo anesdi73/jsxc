@@ -81,7 +81,7 @@ jsxc.xmpp.sifiletransfer.ibbHandler = function (type, from, sid, data, seq) {
 			break;
 		case "data":
 			// We are assuming all data is recieved secuentially and without duplicates. Check it
-			var seqValue = Number(seq)
+			var seqValue = Number(seq);
 			if (transfer.expectedSeq !== seqValue) {
 				jsxc.debug("si file transfer IBB packet received out of order. From: " + from + " sid:" + sid + " seq: " + seq + " expected seq:" + transfer.expectedSeq);
 				return;
@@ -130,7 +130,7 @@ jsxc.xmpp.sifiletransfer.onReceivedFile = function(transfer) {
 		return;
 	}
 	// create a file in memory from the data downloaded
-	var file = self.fileFromTransfer(transfer)
+	var file = self.fileFromTransfer(transfer);
 	// Read the created file
 	var reader = new FileReader();
 	reader.onload = function(ev) {
@@ -161,8 +161,9 @@ jsxc.xmpp.sifiletransfer.fileFromTransfer = function (transfer) {
 		type: type
 	});
 	return file;
-}
+};
 jsxc.xmpp.sifiletransfer.fileTypeFromTransfer = function (transfer) {
+	var self = jsxc.xmpp.sifiletransfer;
 	var type;
 	if (!transfer.mime) {
 		type = self.mimeTypeFromFileName(transfer.filename);
@@ -170,41 +171,41 @@ jsxc.xmpp.sifiletransfer.fileTypeFromTransfer = function (transfer) {
 		type = transfer.mime;
 	}
 	return type;
-}
+};
 jsxc.xmpp.sifiletransfer.byteArrayFromTransfer = function (transfer) {
 	var bytes = new Uint8Array(transfer.size);
 	for (var i = 0; i < transfer.size; i++) {
 		bytes[i] = transfer.data.charCodeAt(i);
 	}
 	return bytes;
-}
+};
 jsxc.xmpp.sifiletransfer.mimeTypeFromFileName = function (fileNameWithExtension) {
 	var type;
 	var ext = fileNameWithExtension.replace(/.+\.([a-z0-9]+)$/i, "$1").toLowerCase();
 
-		switch (ext) {
-			case "jpg":
-			case "jpeg":
-			case "png":
-			case "gif":
-			case "svg":
-				type = "image/" + ext.replace(/^jpg$/, "jpeg");
-				break;
-			case "mp3":
-			case "wav":
-				type = "audio/" + ext;
-				break;
-			case "pdf":
-				type = "application/pdf";
-				break;
-			case "txt":
-				type = "text/" + ext;
-				break;
-			default:
-				type = "application/octet-stream";
+	switch (ext) {
+		case "jpg":
+		case "jpeg":
+		case "png":
+		case "gif":
+		case "svg":
+			type = "image/" + ext.replace(/^jpg$/, "jpeg");
+			break;
+		case "mp3":
+		case "wav":
+			type = "audio/" + ext;
+			break;
+		case "pdf":
+			type = "application/pdf";
+			break;
+		case "txt":
+			type = "text/" + ext;
+			break;
+		default:
+			type = "application/octet-stream";
 	}
 	return type;
-}
+};
 
 
 
