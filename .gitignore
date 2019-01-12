@@ -28,3 +28,5 @@ lib/magnific-popup/
 /lib/strophejs-plugin-mam
 /lib/strophejs-plugin-rsm
 .github.json
+/.tscache/
+/src/generated/

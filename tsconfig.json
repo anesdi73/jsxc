@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "sourceMap": true,
+        "declaration": false,
+        "outDir": "src/generated",
+        "target": "es5",
+        //"module": "amd",
+        "noEmitOnError": true,
+        "rootDir": "src/ts/src",
+        "typeRoots" : ["node_modules/@types","src/ts/references"]
+    },
+    "include": [
+        "src/ts/src/*.ts"
+    ]
+}

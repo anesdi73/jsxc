@@ -194,7 +194,7 @@ module.exports = function(grunt) {
             },
             src: ['src/jsxc.intro.js', 'src/jsxc.lib.js', 'src/jsxc.lib.xmpp.js',
                'src/jsxc.lib.gui.js', 'src/jsxc.lib.*.js',
-               'tmp/template.js', 'src/jsxc.outro.js'
+               'tmp/template.js', 'src/jsxc.outro.js', 'src/generated/*.js'
             ],
             dest: '<%= target %>/jsxc.js'
          }
@@ -313,13 +313,17 @@ module.exports = function(grunt) {
             tasks: ['sass', 'autoprefixer', 'replace:imageUrl']
          },
          js: {
-            files: ['src/jsxc.lib.*'],
+            files: ['src/jsxc.lib.*','src/generated/*.js'],
             tasks: ['concat:jsxc']
+          },
+         ts: {
+            files: ['src/**/*.ts'],
+            tasks: ['ts']
          },
          template: {
             files: ['template/*.html'],
             tasks: ['htmlConvert', 'replace:template', 'concat:jsxc']
-         }
+          }
       },
       jsbeautifier: {
          'default': {
@@ -394,6 +398,11 @@ module.exports = function(grunt) {
             },
             src: ['archives/jsxc-archives/jsxc-<%= version %>.zip', 'archives/jsxc-archives/jsxc-<%= version %>.zip.sig']
          }
+       },
+       ts: {
+        default : {
+          tsconfig: './tsconfig.json'
+        }
       }
    });
 
@@ -419,11 +428,12 @@ module.exports = function(grunt) {
    grunt.loadNpmTasks('grunt-html-convert');
    grunt.loadNpmTasks('grunt-scss-lint');
    grunt.loadNpmTasks('grunt-github-releaser2');
+   grunt.loadNpmTasks("grunt-ts");
 
    //Default task
    grunt.registerTask('default', ['build', 'watch']);
 
-   grunt.registerTask('build', ['jshint', 'clean', 'sass', 'replace:imageUrl',
+   grunt.registerTask('build', ['ts','jshint', 'clean', 'sass', 'replace:imageUrl',
       'autoprefixer', 'copy', 'merge_data', 'replace:locales', 'htmlConvert',
       'replace:template', 'concat'
    ]);
