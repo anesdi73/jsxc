@@ -2819,7 +2819,7 @@ jsxc.gui.window = {
             attachment = $('<a>').append(attachment);
             attachment.attr('href', message.attachment.data);
             attachment.attr('download', message.attachment.name);
-
+            attachment.attr("target","_blank");
             if (message.attachment.data === message.msg) {
                msgDiv.find('div').first().empty();
             }
