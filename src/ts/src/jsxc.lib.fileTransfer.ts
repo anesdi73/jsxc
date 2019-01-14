@@ -266,12 +266,13 @@ class FileTransfer {
 			win.find('.jsxc_sendFile').removeClass('jsxc_disabled');
 			jsxc.debug('File transfer with ' + bid + ' can be done using WebRtc');
 			return;
-		} else if (this.canSendFileWitSiFileTransfer(bid)) {
+		}/*
+		else if (this.canSendFileWitSiFileTransfer(bid)) {
 			win.find('.jsxc_sendFile').removeClass('jsxc_disabled');
 			jsxc.debug('File transfer with ' + bid + ' can be done using si FileTransfer');
 			return;
 		}
-
+		*/
 		// No valid method found
 		win.find('.jsxc_sendFile').addClass('jsxc_disabled');
 		jsxc.debug('File transfer with ' + bid + ' can not be done. No valid method found');
