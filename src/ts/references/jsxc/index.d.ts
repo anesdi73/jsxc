@@ -61,10 +61,10 @@ declare namespace jsxc {
          * Return list of capable resources.
          *
          * @param {string} jid
-         * @param {(string|string[])} reuiredFeatures
+         * @param {(string|string[])} requiredFeatures
          * @returns {string[]} capable resources
          */
-        function getCapableRes(jid: string, reuiredFeatures: string | string[]): string[];
+        function getCapableRes(jid: string, requiredFeatures: string | string[]): string[];
          /**
     * Send file to full jid via jingle.
     *
