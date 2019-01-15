@@ -4,6 +4,7 @@
         "declaration": false,
         "outDir": "src/generated",
         "target": "es5",
+        "lib": ["es6","dom", "scripthost"],
         //"module": "amd",
         "noEmitOnError": true,
         "rootDir": "src/ts/src",
