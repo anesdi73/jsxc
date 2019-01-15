@@ -79,6 +79,20 @@ class SiFileTransfer {
 	 * @memberof SiFileTransfer
 	 */
 	private transfers: { [id: string]: Transfer } = {};
+
+	/**
+	 * Features to signal support for Si File Trnasfer
+	 * Implemented as a property instead of a member since this class be initializaed
+	 * before the siFileTransfer plugin is loaded
+	 *
+	 * @readonly
+	 * @type {string[]}
+	 * @memberof SiFileTransfer
+	 */
+	public get reqSiFileTranferFeatures(): string[] {
+		return [Strophe.NS['SI'], Strophe.NS['SI_FILE_TRANSFER']];
+	}
+
 	/**
 	 * Initialize sifiletransfer +ibb plugin for jsxc. (XEP-0096: SI File Transfer + XEP-0047: In-Band Bytestreams)
 	 * This is executed when connection is established so it will be called potentially multiple times (or none)
@@ -163,6 +177,9 @@ class SiFileTransfer {
 		jsxc.debug('si file transfer IBB packet received. From: ' + from + ' sid:' + sid + ' seq: ' + seq + ' type:' + type);
 		const transfer = this.transfers[sid];
 		if (!transfer) {
+			// This can happen when sending a file. The other side can send a close to indicate that it has all the packets
+			// See xep-0047 v2.0  section 2.3
+			// It is not an error and can be safely ignored
 			jsxc.debug('si file transfer IBB packet received for unknown file tranfer: ' + sid);
 			return;
 		}
@@ -342,6 +359,43 @@ class SiFileTransfer {
 		}
 		return type;
 	}
+	/**
+	 * Send a file using si File Transfer with ibb asynchrounsly
+	 *
+	 * @param {string} jid Full jabber identifier where we are sending the file to
+	 * @param {File} file file we are sending
+	 * @param {jsxc.Message} message Gui message that shows information regarding this file transmission
+	 * @returns {Promise<void>}
+	 * @memberof SiFileTransfer
+	 */
+	public async sendFileAsync(jid: string, file: File, message: jsxc.Message): Promise<void> {
+		try {
+			const sid = await AsyncAdapter.sendAsync(jid, file);
+			const blocksize = await AsyncAdapter.openAsync(jid, sid);
+			const fileData = await AsyncAdapter.readFileAsync(file);
+			const fileBytesBase64 = fileData.split('base64,')[1];
+			const numChunks = Math.ceil(fileBytesBase64.length / blocksize);
+
+			for (let seq = 0; seq < numChunks; seq++) {
+				const seqData = fileBytesBase64.slice(seq * blocksize, (seq + 1) * blocksize);
+				await AsyncAdapter.dataAsync(jid, sid, seq, seqData);
+				jsxc.gui.window.updateProgress(message, seq, numChunks);
+			}
+			AsyncAdapter.closeAsync(jid, sid);
+			// TODO: We could remark that the file has been sent using a green border
+			message.received();
+		} catch (error) {
+			// TODO: We could remark that the file has not been sent using a red border
+			jsxc.debug('Error sending file with sifileTransfer: ' + error);
+			const bid = jsxc.jidToBid(jid);
+			jsxc.gui.window.postMessage({
+				bid: bid,
+				direction: jsxc.Message.SYS,
+				msg: $.t('Error_sending_file') + ' ' + file.name
+			 });
+		}
+	}
+
 }
 // register the module initialization when the connection is established
 $(document).ready(function() {
