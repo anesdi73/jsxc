@@ -1278,8 +1278,8 @@ jsxc.muc = {
             } else if (jsxc.jidToBid(jid) === ownBid) {
                jsxc.gui.avatar.update(m, jsxc.jidToBid(jid), 'own');
             } else {
-              // use default avatar if there is no "buddy info"
-              jsxc.gui.avatar.update(m, jsxc.jidToBid(jid));   
+               // use default avatar if there is no "buddy info"
+               jsxc.gui.avatar.update(m, jsxc.jidToBid(jid));
             }
          } else {
             m.find('.jsxc_name').text(nickname);
