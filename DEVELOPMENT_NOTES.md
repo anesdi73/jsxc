@@ -1,0 +1,1 @@
+XEP-0077: In-Band Registration should be included to allow to register a client with the XMPP server
