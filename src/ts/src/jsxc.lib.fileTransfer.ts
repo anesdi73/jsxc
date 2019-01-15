@@ -1,15 +1,13 @@
-type FileWithTransportMethod = File & {transportMethod: string};
+type FileWithTransportMethod = File & { transportMethod: string };
 class FileTransfer {
-
 	/**
 	 * Make bytes more human readable.
 	 *
-	 * @static
 	 * @param {number} byte
 	 * @returns {string}
 	 * @memberof FileTransfer
 	 */
-	formatByte(byte: number): string {
+	private formatByte(byte: number): string {
 		const s = ['', 'KB', 'MB', 'GB', 'TB'];
 		let i;
 
@@ -23,45 +21,46 @@ class FileTransfer {
 		return Math.round(byte * 10) / 10 + s[i - 1];
 	}
 	/**
-	 * Start file transfer dialog.
+	 * Start file transfer dialog. This is the entry point to send a file from the gui
 	 *
 	 * @memberOf jsxc.fileTransfer
 	 * @param  {String} jid
 	 */
-	startGuiAction(jid: string) {
-		const bid = jsxc.jidToBid(jid);
-		const res = Strophe.getResourceFromJid(jid);
-
-		if (!res && !jsxc.xmpp.httpUpload.ready) {
-			if (this.isWebrtcCapable(bid)) {
-				this.selectResource(bid, (selectedResource) => this.startGuiAction(selectedResource));
-			} else {
-				jsxc.gui.window.postMessage({
-					bid: bid,
-					direction: jsxc.Message.SYS,
-					msg: $.t('No_proper_file_transfer_method_available')
-				});
-			}
-
-			return;
-		}
-
+	public startGuiAction(jid: string) {
 		this.showFileSelection(jid);
 	}
 	/**
-	 * Show select dialog for file transfer capable resources.
+	 * Obtain the full jid for this bid with support for the specified features
+	 * A user (bid) could be connected simultaneously to the server with different clients (full jid)
+	 *
+	 * @private
+	 * @param {string} bid
+	 * @param {string[]} requiredFeatures
+	 * @returns {Promise<string>} A promise including the jid with support for the specified features (or null if not found)
+	 * @memberof FileTransfer
+	 */
+	private getFullJidWithFeaturesAsync(bid: string, requiredFeatures: string[]): Promise<string> {
+		const promise = new Promise<string>(resolve => {
+			this.selectFullJidWithFeatures(bid, requiredFeatures, jid => resolve(jid), () => resolve(null));
+		});
+		return promise;
+	}
+	/**
+	 * Obtain the full jid for this bid with support for the specified features
+	 * A user (bid) could be connected simultaneously to the server with different clients (full jid)
 	 *
 	 * @memberOf jsxc.fileTransfer
 	 * @param  {String} bid
+	 * @param {string[]} requiredFeatures
 	 * @param  {Function} success_cb Called if user selects resource
 	 * @param  {Function} error_cb Called if no resource was found or selected
 	 */
-	selectResource(bid: string, success_cb: (jid: string) => void, error_cb?: () => void) {
+	private selectFullJidWithFeatures(bid: string, requiredFeatures: string[], success_cb: (jid: string) => void, error_cb?: () => void) {
 		const win = jsxc.gui.window.get(bid);
 		let jid = win.data('jid');
 		let res = Strophe.getResourceFromJid(jid);
 
-		const fileCapableRes = jsxc.webrtc.getCapableRes(jid, jsxc.webrtc.reqFileFeatures);
+		const fileCapableRes = jsxc.webrtc.getCapableRes(jid, requiredFeatures);
 		const resources = Object.keys(jsxc.storage.getUserItem('res', bid)) || [];
 
 		if (res === null && resources.length === 1 && fileCapableRes.length === 1) {
@@ -74,11 +73,11 @@ class FileTransfer {
 			// currently used resource is capable to receive files
 			success_cb(bid + '/' + res);
 		} else if (fileCapableRes.indexOf(res) < 0) {
-			// show selection dialog
+			// show selection dialog. if fileCapableRes.length==0, it closes automatically.
 			jsxc.gui.window.selectResource(
 				bid,
 				$.t('Your_contact_uses_multiple_clients_'),
-				(data) => {
+				data => {
 					if (data.status === 'unavailable') {
 						jsxc.gui.window.hideOverlay(bid);
 
@@ -92,15 +91,15 @@ class FileTransfer {
 				fileCapableRes
 			);
 		}
-    }
+	}
 
 	/**
-	 * Show file selector.
+	 * Show file selector overlay.
 	 *
 	 * @memberOf jsxc.fileTransfer
 	 * @param  {String} jid
 	 */
-	showFileSelection(jid: string) {
+	private showFileSelection(jid: string) {
 		const bid = jsxc.jidToBid(jid);
 		const msg = $('<div><div><label><input type="file" name="files" /><label></div></div>');
 
@@ -118,69 +117,75 @@ class FileTransfer {
 			if (!file) {
 				return;
 			}
-			const transportMethodInfo: { transportMethod: string } = { transportMethod: undefined };
-			const fileEx = $.extend(file, transportMethodInfo);
-			this.fileSelected(jid, msg, fileEx);
+			jsxc.gui.window.hideOverlay(bid);
+			this.fileSelected(jid, file);
 		});
-	}
-	showFileTooLarge(bid, file) {
-		const maxSize = this.formatByte(jsxc.options.get('httpUpload').maxSize);
-		const fileSize = this.formatByte(file.size);
-
-		jsxc.gui.window.postMessage({
-			bid: bid,
-			direction: jsxc.Message.SYS,
-			msg: $.t('File_too_large') + ' (' + fileSize + ' > ' + maxSize + ')'
-		});
-
-		jsxc.gui.window.hideOverlay(bid);
 	}
 	/**
-	 * Callback for file selector.
+	 * File selection handler
 	 *
-	 * @memberOf jsxc.fileTransfer
-	 * @param  {String} jid
-	 * @param  {jQuery} msg jQuery object of temporary file message
-	 * @param  {FileWithTransportMethod} file selected file
+	 * @private
+	 * @param {string} jid
+	 * @param {File} file
+	 * @memberof FileTransfer
 	 */
-	fileSelected(jid: string, msg: JQuery<HTMLElement>, file: FileWithTransportMethod) {
+	private async fileSelected(jid: string, file: File) {
 		const bid = jsxc.jidToBid(jid);
-		const httpUploadOptions = jsxc.options.get('httpUpload') || {};
-		const maxSize = httpUploadOptions.maxSize || -1;
-
-		if (file.transportMethod !== 'webrtc' && jsxc.xmpp.httpUpload.ready && maxSize >= 0 && file.size > maxSize) {
-			jsxc.debug('File too large for http upload.');
-
-			if (this.isWebrtcCapable(bid)) {
-				// try data channels
-				file.transportMethod = 'webrtc';
-
-				this.selectResource(
-					bid,
-					selectedJid => {
-						this.fileSelected(selectedJid, msg, file);
-					},
-					() => {
-						this.showFileTooLarge(bid, file);
-					}
-				);
-			} else {
-				this.showFileTooLarge(bid, file);
-			}
-
-			return;
-		} else if (!jsxc.xmpp.httpUpload.ready && Strophe.getResourceFromJid(jid)) {
-			// http upload not available
-			file.transportMethod = 'webrtc';
+		const methodAndJid = await this.defineMethodAndJidtoSendFile(bid, file);
+		if (!methodAndJid.transportMethod) {
+			jsxc.gui.window.postMessage({
+				bid: bid,
+				direction: jsxc.Message.SYS,
+				msg: $.t('No_proper_file_transfer_method_available')
+			});
+		} else {
+			this.showOverlayToSendSelectedFile(methodAndJid.jid, methodAndJid.transportMethod, file);
 		}
-
+	}
+	/**
+	 *
+	 *
+	 * @private
+	 * @param {string} bid User we are sending to
+	 * @param {File} file File we are sending
+	 * @returns the method and full jid to send the file to
+	 * @memberof FileTransfer
+	 */
+	private async defineMethodAndJidtoSendFile(bid: string, file: File) {
+		if (this.canSendFileWithHttpUpload(file.size)) {
+			return { transportMethod: 'httpUpload', jid: undefined };
+		}
+		const jidForWebRtc = await this.getFullJidWithFeaturesAsync(bid, jsxc.webrtc.reqFileFeatures);
+		if (jidForWebRtc) {
+			return { transportMethod: 'webrtc', jid: jidForWebRtc };
+		}
+		const jidForSiFileTransfer = await this.getFullJidWithFeaturesAsync(bid, jsxc.xmpp.sifiletransfer.reqSiFileTranferFeatures);
+		if (jidForSiFileTransfer) {
+			return { transportMethod: 'siFileTransfer', jid: jidForSiFileTransfer };
+		}
+		return { transportMethod: null, jid: null };
+	}
+	/**
+	 * Show and overlay that allows the user to send the selected file (or cancel it )
+	 *
+	 * @private
+	 * @param {string} jid
+	 * @param {string} transportMethod
+	 * @param {File} file
+	 * @memberof FileTransfer
+	 */
+	private showOverlayToSendSelectedFile(jid: string, transportMethod: string, file: File) {
+		const bid = jsxc.jidToBid(jid);
 		const attachment = $('<div>');
 		attachment.addClass('jsxc_attachment');
 		attachment.addClass('jsxc_' + file.type.replace(/\//, '-'));
 		attachment.addClass('jsxc_' + file.type.replace(/^([^/]+)\/.*/, '$1'));
+		const msg = $('<div>');
+		msg.addClass('jsxc_chatmessage');
+		msg.append(attachment);
+		jsxc.gui.window.showOverlay(bid, msg, true);
 
-		msg.empty().append(attachment);
-        let img;
+		let img;
 		if (FileReader && file.type.match(/^image\//)) {
 			// show image preview
 			img = $('<img alt="preview">').attr('title', file.name);
@@ -217,7 +222,7 @@ class FileTransfer {
 					}
 				});
 
-				if (file.transportMethod === 'webrtc') {
+				if (transportMethod === 'webrtc') {
 					const sess = jsxc.webrtc.sendFile(jid, file);
 
 					sess.sender.on('progress', (sent: number, size: number) => {
@@ -227,9 +232,20 @@ class FileTransfer {
 							message.received();
 						}
 					});
-				} else {
+				} else if (transportMethod === 'siFileTransfer') {
+					// progress is updated in xmpp.sifiletransfer.sendFile
+					jsxc.xmpp.sifiletransfer.sendFileAsync(jid, file, message);
+				} else if (transportMethod === 'httpUpload') {
 					// progress is updated in xmpp.httpUpload.uploadFile
 					jsxc.xmpp.httpUpload.sendFile(file, message);
+				} else {
+					// This should never happen
+					jsxc.debug('Unknown method to send a file: ' + transportMethod);
+					jsxc.gui.window.postMessage({
+						bid: bid,
+						direction: jsxc.Message.SYS,
+						msg: $.t('Unknown_file_transport_method') + ' ' + transportMethod
+					});
 				}
 			})
 			.appendTo(msg);
@@ -243,13 +259,14 @@ class FileTransfer {
 			})
 			.appendTo(msg);
 	}
+
 	/**
 	 * Enable/disable icons for file transfer.
 	 *
 	 * @memberOf jsxc.fileTransfer
 	 * @param  {String} bid
 	 */
-	updateIcons(bid: string) {
+	public updateIcons(bid: string) {
 		const win = jsxc.gui.window.get(bid);
 
 		if (!win || win.length === 0 || !jsxc.xmpp.conn) {
@@ -266,24 +283,33 @@ class FileTransfer {
 			win.find('.jsxc_sendFile').removeClass('jsxc_disabled');
 			jsxc.debug('File transfer with ' + bid + ' can be done using WebRtc');
 			return;
-		}/*
-		else if (this.canSendFileWitSiFileTransfer(bid)) {
+		} else if (this.canSendFileWitSiFileTransfer(bid)) {
 			win.find('.jsxc_sendFile').removeClass('jsxc_disabled');
 			jsxc.debug('File transfer with ' + bid + ' can be done using si FileTransfer');
 			return;
 		}
-		*/
 		// No valid method found
 		win.find('.jsxc_sendFile').addClass('jsxc_disabled');
 		jsxc.debug('File transfer with ' + bid + ' can not be done. No valid method found');
 	}
-	canSendFileWithHttpUpload() {
+	private canSendFileWithHttpUpload(size?: number) {
+		// Just check that the server is capabale.
 		if (!jsxc.xmpp.httpUpload.ready) {
 			return false;
+		} else {
+			// Check we are not trying to send somethnig too big
+			const httpUploadOptions = jsxc.options.get('httpUpload') || {};
+			const maxSize = httpUploadOptions.maxSize || -1;
+			if (typeof size !== 'undefined' && maxSize !== -1) {
+				if (size >= maxSize) {
+					jsxc.debug('File too large for http upload. Max. size: ' + this.formatByte(maxSize) + ' Actual size: ' + this.formatByte(size));
+					return false;
+				}
+			}
 		}
 		return true;
 	}
-	canSendFileWithWebRtc(bid) {
+	private canSendFileWithWebRtc(bid) {
 		if (!this.isWebrtcCapable(bid)) {
 			return false;
 		}
@@ -292,42 +318,57 @@ class FileTransfer {
 		}
 		return true;
 	}
-	canSendFileWitSiFileTransfer(bid) {
+	private canSendFileWitSiFileTransfer(bid) {
 		if (!this.isSiFileTransferCapable(bid)) {
 			return false;
 		}
-		if (!this.hasSupportFor(bid, [Strophe.NS['SI'], Strophe.NS['SI_FILE_TRANSFER']])) {
+		if (!this.hasSupportFor(bid, jsxc.xmpp.sifiletransfer.reqSiFileTranferFeatures)) {
 			return false;
 		}
 		return true;
 	}
-	isSiFileTransferCapable(bid) {
+	private isSiFileTransferCapable(bid: string) {
 		return !jsxc.muc.isGroupchat(bid);
 	}
-	hasSupportFor(bid, reqFeatures) {
+	/**
+	 * return true if the current client we are talking to in this  chat
+	 * has support  si file transfer
+	 * @private
+	 * @param {string} bid
+	 * @param {string[]} reqFeatures
+	 * @returns
+	 * @memberof FileTransfer
+	 */
+	private hasSupportFor(bid: string, reqFeatures: string[]) {
 		const win = jsxc.gui.window.get(bid);
 
 		if (!win || win.length === 0 || !jsxc.xmpp.conn) {
-			return;
+			return false;
 		}
-
+		// Get the full jabber id  from the window
+		// If we have not yet received any message it will not include a resource
 		const jid = win.data('jid');
+		// res can be null
 		const res = Strophe.getResourceFromJid(jid);
 		const fileCapableRes = jsxc.webrtc.getCapableRes(bid, reqFeatures);
 		const resources = Object.keys(jsxc.storage.getUserItem('res', bid) || {}) || [];
 
-		if (fileCapableRes.indexOf(res) > -1 || (res === null && fileCapableRes.length === 1 && resources.length === 1)) {
+		// If the client we are talking to is one with support for the capability return true;
+		if (fileCapableRes.indexOf(res) > -1) {
 			return true;
-		} else {
-			return false;
 		}
+		// we dont know yet the client we are talking to (probably we have not received any message from it)
+		// but if there is only one and also only one with support for the capability return true;
+		if (res === null && fileCapableRes.length === 1 && resources.length === 1) {
+			return true;
+		}
+		return false;
 	}
-	isWebrtcCapable(bid) {
+	private isWebrtcCapable(bid: string) {
 		return !jsxc.muc.isGroupchat(bid);
 	}
 }
-
+jsxc.fileTransfer = new FileTransfer();
 $(document).on('update.gui.jsxc', (ev, bid) => {
-	jsxc.fileTransfer = new FileTransfer();
 	jsxc.fileTransfer.updateIcons(bid);
 });
