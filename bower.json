@@ -38,6 +38,7 @@
     "strophejs-plugin-rsm": "strophe/strophejs-plugin-rsm#fa16b3b",
     "strophejs": "~1.2.14",
     "strophejs-plugin-si-filetransfer": "git://github.com/strophe/strophejs-plugin-si-filetransfer.git",
-    "strophejs-plugin-ibb": "git://github.com/strophe/strophejs-plugin-ibb.git"
+    "strophejs-plugin-ibb": "git://github.com/strophe/strophejs-plugin-ibb.git",
+    "strophejs-plugin-register": "strophe/strophejs-plugin-register#^0.0.1"
   }
 }

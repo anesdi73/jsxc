@@ -1,0 +1,15 @@
+{
+  "name": "strophejs-plugin-register",
+  "homepage": "https://github.com/strophe/strophejs-plugin-register",
+  "version": "0.0.1",
+  "_release": "0.0.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.0.1",
+    "commit": "5ba9988445232acf04771b67eea4a50d3527bbea"
+  },
+  "_source": "https://github.com/strophe/strophejs-plugin-register.git",
+  "_target": "^0.0.1",
+  "_originalSource": "strophe/strophejs-plugin-register",
+  "_direct": true
+}

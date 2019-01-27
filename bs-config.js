@@ -6,5 +6,6 @@ module.exports = {
 		routes: {
 			"/": "example"
 		}
-	}
+	},
+	watchOptions: { ignored: ['node_modules','.tscache']}
 };
