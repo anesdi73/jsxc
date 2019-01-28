@@ -49,8 +49,8 @@ $(function() {
    $('#form3 .submit').click(jsxc.gui.showLoginBox);
 
    // Register Login
-   $('#form4 .submit').click(()=>jsxc.register.registerInServer());
-      
+   $('#form4 .submit').click(() => jsxc.register.registerInServer());
+
    // ============================================
    // Below you find only some helper to show/hide
    // logout buttons and similiar stuff.
