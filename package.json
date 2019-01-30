@@ -37,10 +37,10 @@
     "grunt-text-replace": "~0.4.0",
     "grunt-ts": "^6.0.0-beta.21",
     "node-sass": "^4.9.0",
-    "typescript": "^3.2.2"
-  },
-  "dependencies": {
+    "typescript": "^3.2.2",
+    "bower-nexus3-resolver": "*",
     "@types/jquery": "^3.3.29",
     "@types/strophe.js": "^1.2.0"
-  }
+  },
+  "dependencies": {}
 }
