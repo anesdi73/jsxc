@@ -1,8 +1,4 @@
 {
     "directory": "lib/",
-    "analytics": false,
-    "registry" : {
-        "search" : [ "http://defnexus:8081/repository/bower-group/" ]
-       },
-     "resolvers" : [ "bower-nexus3-resolver" ]
+    "analytics": false
 }
