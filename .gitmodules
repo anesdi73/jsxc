@@ -1,6 +1,0 @@
-[submodule "lib/otr"]
-	path = lib/otr
-	url = https://github.com/sualko/otr.git
-[submodule "lib/strophe.jinglejs"]
-	path = lib/strophe.jinglejs
-	url = https://github.com/jsxc/strophe.jinglejs
