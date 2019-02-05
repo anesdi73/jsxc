@@ -1,0 +1,12 @@
+{
+  "name": "strophejs-plugin-mam",
+  "homepage": "https://github.com/strophe/strophejs-plugin-mam",
+  "_release": "d7b9a8a0b4",
+  "_resolution": {
+    "type": "commit",
+    "commit": "d7b9a8a0b404e3dd9c83dd9cc4bf28aec2e5f329"
+  },
+  "_source": "https://github.com/strophe/strophejs-plugin-mam.git",
+  "_target": "d7b9a8a0b404e3dd9c83dd9cc4bf28aec2e5f329",
+  "_originalSource": "strophe/strophejs-plugin-mam"
+}

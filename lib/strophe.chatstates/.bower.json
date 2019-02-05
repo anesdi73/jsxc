@@ -1,0 +1,12 @@
+{
+  "name": "strophe.chatstates",
+  "homepage": "https://github.com/strophe/strophejs-plugin-chatstates",
+  "_release": "fb0b5f5b03",
+  "_resolution": {
+    "type": "commit",
+    "commit": "fb0b5f5b03d98ba05ac9dec853fe2190794128b6"
+  },
+  "_source": "https://github.com/strophe/strophejs-plugin-chatstates.git",
+  "_target": "fb0b5f5b03d98ba05ac9dec853fe2190794128b6",
+  "_originalSource": "strophe/strophejs-plugin-chatstates"
+}

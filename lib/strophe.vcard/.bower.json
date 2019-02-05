@@ -1,0 +1,12 @@
+{
+  "name": "strophe.vcard",
+  "homepage": "https://github.com/strophe/strophejs-plugin-vcard",
+  "_release": "de3a0c97a2",
+  "_resolution": {
+    "type": "commit",
+    "commit": "de3a0c97a2c520ed900ee15b04a0c16d5c663891"
+  },
+  "_source": "https://github.com/strophe/strophejs-plugin-vcard.git",
+  "_target": "de3a0c97a2c520ed900ee15b04a0c16d5c663891",
+  "_originalSource": "strophe/strophejs-plugin-vcard"
+}

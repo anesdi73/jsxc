@@ -1,0 +1,12 @@
+{
+  "name": "strophejs-plugin-rsm",
+  "homepage": "https://github.com/strophe/strophejs-plugin-rsm",
+  "_release": "fa16b3b",
+  "_resolution": {
+    "type": "commit",
+    "commit": "fa16b3b"
+  },
+  "_source": "https://github.com/strophe/strophejs-plugin-rsm.git",
+  "_target": "fa16b3b",
+  "_originalSource": "strophe/strophejs-plugin-rsm"
+}

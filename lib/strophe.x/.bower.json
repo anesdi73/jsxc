@@ -1,0 +1,13 @@
+{
+  "name": "strophe.x",
+  "homepage": "https://github.com/strophe/strophejs-plugin-dataforms",
+  "_release": "52835c994c",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "52835c994c691099d26793321ff98f59ac838cc2"
+  },
+  "_source": "https://github.com/strophe/strophejs-plugin-dataforms.git",
+  "_target": "*",
+  "_originalSource": "strophe/strophejs-plugin-dataforms"
+}
