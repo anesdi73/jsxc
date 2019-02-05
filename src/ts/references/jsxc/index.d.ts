@@ -2,11 +2,13 @@ declare namespace jsxc {
 	interface ConnectionPlugins {
 		si_filetransfer: SiFileTransferPlugin;
 		ibb: IbbPlugin;
-        register: RegisterPlugin;
-        options: {
-            sync:boolean
-        }
-        authenticated: boolean;
+		register: RegisterPlugin;
+		disco: DiscoPlugin;
+		caps: CapsPlugin;
+		options: {
+			sync: boolean;
+		};
+		authenticated: boolean;
 		authenticate();
 		/**
 		 * User overrideable function that receives the new valid rid.
@@ -63,13 +65,17 @@ declare namespace jsxc {
 	}
 	var CONST: {
 		STATE: {
-			INITIATING: number;
-			PREVCONFOUND: number;
-			SUSPEND: number;
-			TRYTOINTERCEPT: number;
-			INTERCEPTED: number;
-			ESTABLISHING: number;
-			READY: number;
+			INITIATING: 0;
+			PREVCONFOUND: 1;
+			SUSPEND: 2;
+			TRYTOINTERCEPT: 3;
+			INTERCEPTED: 4;
+			ESTABLISHING: 5;
+			READY: 6;
+		};
+		UISTATE: {
+			INITIATING: 0;
+			READY: 1;
 		};
 	};
 	namespace options {
@@ -119,6 +125,7 @@ declare namespace jsxc {
 		 */
 		function login(jid: string, password: string, rid: string);
 		var sifiletransfer: SiFileTransfer;
+		var securityLabels: SecurityLabels;
 		namespace httpUpload {
 			var ready: boolean;
 			function sendFile(file: File, message: jsxc.Message);
@@ -154,31 +161,28 @@ declare namespace jsxc {
 		 */
 		function showRegisterUserBox(loginAfterSuccesfullRegister: boolean);
 
-					/**
-			 * Create and show a wait dialog
-			 *
-			 * @param {string} msg message to display to the user
-			 */
-			function showWaitAlert(msg:string): void;
-			
-			/**
-			 * Create and show a wait dialog
-			 *
-			 * @param {string} msg message to display to the user
-			 */
-			function showAlert(msg:string): void
-			
-			/**
-			 * Create and show a confirm dialog
-			 *
-			 * @param {string} msg
-			 * @param {Function} confirm
-			 * @param {Function} dismiss
-			 */
+		/**
+		 * Create and show a wait dialog
+		 *
+		 * @param {string} msg message to display to the user
+		 */
+		function showWaitAlert(msg: string): void;
+
+		/**
+		 * Create and show a wait dialog
+		 *
+		 * @param {string} msg message to display to the user
+		 */
+		function showAlert(msg: string): void;
+
+		/**
+		 * Create and show a confirm dialog
+		 *
+		 * @param {string} msg
+		 * @param {Function} confirm
+		 * @param {Function} dismiss
+		 */
 		function showConfirmDialog(msg: string, confirm: Function, dismiss: Function): void;
-		
-
-
 
 		namespace dialog {
 			/**
@@ -192,16 +196,14 @@ declare namespace jsxc {
 				o?: { noclose?: boolean; name?: string }
 			);
 
-            function resize();
-            /**
-             * If no name is provided every dialog will be closed,
-             * otherwise only dialog with given name is closed.
-             *
-             * @param {string} [name] Close only dialog with the given name
-             */
+			function resize();
+			/**
+			 * If no name is provided every dialog will be closed,
+			 * otherwise only dialog with given name is closed.
+			 *
+			 * @param {string} [name] Close only dialog with the given name
+			 */
 			function close(name?: string): void;
-			
-
 		}
 		namespace template {
 			/**
@@ -229,12 +231,7 @@ declare namespace jsxc {
 			function selectResource(
 				bid: string,
 				text: string,
-				selectionCallback?: (
-					param: {
-						status: "unavailable" | "selected";
-						result?: string;
-					}
-				) => void,
+				selectionCallback?: (param: { status: "unavailable" | "selected"; result?: string }) => void,
 				res?: string[]
 			);
 			function showOverlay(
@@ -248,11 +245,11 @@ declare namespace jsxc {
 		function isGroupchat(jid: string);
 	}
 	var triggeredFromBox: boolean;
-    var bid: string;
+	var bid: string;
 	var fileTransfer: FileTransfer;
 	var register: Register;
 
-	function debug(mes: string, data?: object);
+	function debug(mes: string, data?: object, level?:string);
 	function warn(mes: string, data?: object);
 	function error(mes: string, data?: object);
 	/**
@@ -279,7 +276,7 @@ declare namespace jsxc {
 	 */
 	function prepareLogin(username: string, password?: string, cb?: (setting: any) => void);
 
-	function changeState(state:number): void;
+	function changeState(state: number): void;
 
 	//var fileTransfer: FileTransfer;
 }

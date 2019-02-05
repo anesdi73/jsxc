@@ -370,18 +370,27 @@ class SiFileTransfer {
 	 */
 	public async sendFileAsync(jid: string, file: File, message: jsxc.Message): Promise<void> {
 		try {
-			const sid = await AsyncAdapter.sendAsync(jid, file);
-			const blocksize = await AsyncAdapter.openAsync(jid, sid);
-			const fileData = await AsyncAdapter.readFileAsync(file);
+			// Read asynchronusly the file (no await)
+			const fileData$ = AsyncAdapter.readFileAsync(file);
+			// Create a Si file transfer session
+			const sid = await AsyncAdapter.SiFileTransfer.sendAsync(jid, file);
+			// Open an In band byte stream (no await)
+			const blocksize$ = AsyncAdapter.IBB.openAsync(jid, sid);
+
+			// Wait for the pending asynchronous operation
+			const res = await Promise.all([blocksize$, fileData$]);
+			const blocksize = res[0];
+			const fileData = res[1];
+
 			const fileBytesBase64 = fileData.split('base64,')[1];
 			const numChunks = Math.ceil(fileBytesBase64.length / blocksize);
 
 			for (let seq = 0; seq < numChunks; seq++) {
 				const seqData = fileBytesBase64.slice(seq * blocksize, (seq + 1) * blocksize);
-				await AsyncAdapter.dataAsync(jid, sid, seq, seqData);
+				await AsyncAdapter.IBB.dataAsync(jid, sid, seq, seqData);
 				jsxc.gui.window.updateProgress(message, seq, numChunks);
 			}
-			AsyncAdapter.closeAsync(jid, sid);
+			AsyncAdapter.IBB.closeAsync(jid, sid);
 			// TODO: We could remark that the file has been sent using a green border
 			message.received();
 		} catch (error) {

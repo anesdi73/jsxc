@@ -1,6 +1,6 @@
 class Register {
 	constructor() {
-		console.log('XEP-0077: In-Band Registration plugin has been initialized');
+		jsxc.debug('XEP-0077: In-Band Registration plugin has been initialized');
 	}
     registerInServer(url?: string, domain?: string) {
         // TODO: Review when url and domain are updated. It seems we change them in the UI and are not modified
