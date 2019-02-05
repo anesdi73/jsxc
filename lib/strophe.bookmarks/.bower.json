@@ -1,0 +1,12 @@
+{
+  "name": "strophe.bookmarks",
+  "homepage": "https://github.com/strophe/strophejs-plugin-bookmarks",
+  "_release": "ff9e95a1a8",
+  "_resolution": {
+    "type": "commit",
+    "commit": "ff9e95a1a823b927f8c4c45453aaa534857a37b4"
+  },
+  "_source": "https://github.com/strophe/strophejs-plugin-bookmarks.git",
+  "_target": "ff9e95a1a823b927f8c4c45453aaa534857a37b4",
+  "_originalSource": "strophe/strophejs-plugin-bookmarks"
+}
