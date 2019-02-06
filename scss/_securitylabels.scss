@@ -1,0 +1,8 @@
+$icon-width: 44px;
+div.jsxc_security_labels {
+    background-image: image-url("shield.svg");
+    
+    &.jsxc_disabled {
+        background-image: image-url("shield_disabled.svg");
+    }
+}

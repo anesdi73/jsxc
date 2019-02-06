@@ -323,6 +323,7 @@
     "You_are_currently_offline": "You are currently offline",
     "Error_sending_file": "Error sending file",
     "Unknown_file_transport_method":"Unknown file transport method",
-    "Details":"Details"
+    "Details":"Details",
+    "Refresh_Sec_Label_Catalog":" Refresh Sec. Labels"
   }
 }

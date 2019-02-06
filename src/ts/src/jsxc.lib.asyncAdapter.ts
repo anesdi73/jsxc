@@ -129,6 +129,18 @@ namespace AsyncAdapter {
 			return promise;
 		 }
 	}
+	export namespace strophe {
+		export function sendIQAsync(elem: Element | Strophe.Builder,  timeout= 10000) {
+			const promise = new Promise<Element>((resolve, reject) => {
+				jsxc.xmpp.conn.sendIQ(elem, (stanza: Element) => {
+					resolve(stanza);
+				}, (stanza: Element) => {
+						reject(stanza);
+					}, timeout);
+			});
+			return promise;
+		}
+	}
 
 
 }

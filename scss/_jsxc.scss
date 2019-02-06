@@ -538,3 +538,29 @@ img.jsxc_vCard {
         width: 25px;
     }
 }
+.jsxc_textImput_right_icons_container{
+    position: absolute;
+    right: 0px;
+    .jsxc_icon{
+        display: inline-block;
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: 14px 14px;
+        opacity: 0.3;
+        height: 44px;
+        width: 44px;
+        cursor: pointer;
+    
+        &:hover {
+            opacity: 1;
+        }
+    
+        &.jsxc_disabled {
+            cursor: default;
+    
+            &:hover {
+                opacity: 0.3;
+            }
+        }
+    }
+}

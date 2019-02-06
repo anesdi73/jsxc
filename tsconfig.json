@@ -3,7 +3,7 @@
         "sourceMap": true,
         "declaration": false,
         "outDir": "src/generated",
-        "target": "es5",
+        "target": "es6",
         "lib": ["es6","dom", "scripthost"],
         //"module": "amd",
         "noEmitOnError": true,
