@@ -10,7 +10,7 @@
    <link href="css/bootstrap.min.css" media="all" rel="stylesheet" type="text/css" />
 
    <!-- require:dependencies -->
-   <link href="../build/css/jquery-ui.min.css" media="all" rel="stylesheet" type="text/css" />
+   <link href="../dev/css/jquery-ui.min.css" media="all" rel="stylesheet" type="text/css" />
    <link href="../dev/css/jsxc.css" media="all" rel="stylesheet" type="text/css" />
    <!--  endrequire -->
 
@@ -19,6 +19,10 @@
    <!-- require:dependencies -->
    <script src="js/jquery.min.js"></script>
    <script src="js/jquery-ui.min.js"></script>
+   <script>
+      /*** Handle jQuery plugin naming conflict between jQuery UI and Bootstrap ***/
+      $.widget.bridge('uitooltip', $.ui.tooltip);
+  </script>
    <script src="../dev/lib/jquery.slimscroll.js"></script>
    <script src="../dev/lib/jquery.fullscreen.js"></script>
    <script src="../dev/lib/jsxc.dep.js"></script>

@@ -1,62 +1,12 @@
-/**
- *A Catalog of Labels
- *
- * @interface SecurityCatalog
- */
-interface SecurityCatalog {
-	/**
-	 * A Jabber Id. Who is this catalog intended to be used with
-	 *
-	 * @type {string}
-	 * @memberof SecurityCatalog
-	 */
-	to: string;
-	/**
-	 * Description
-	 *
-	 * @type {string}
-	 * @memberof SecurityCatalog
-	 */
-	desc: string;
-	name: string;
-	/**
-	 * Restrictive. Id true only security labels included in this catalog can be used
-	 *
-	 * @type {boolean}
-	 * @memberof SecurityCatalog
-	 */
-	restrict?: boolean;
-	items: CatalogItem[];
-}
-interface CatalogItem {
-	selector?: string;
-	securitylabel?: SecurityLabel;
-	default?: boolean;
-}
-/**
- * A Security Label
- *
- * @interface SecurityLabel
- */
-interface SecurityLabel {
-	displayMarking?: DisplayMarking;
-	label: Label;
-	equivalentlabels?: Label[];
-}
-interface Label {
-	labelbody?: string;
-}
-interface DisplayMarking {
-	fgColor?: string;
-	bgColor?: string;
-	text: string;
-}
 class SecurityLabels {
 	public static SEC_LABELS_NAMESPACE = 'urn:xmpp:sec-label:0';
 	public static SEC_LABELS_CATALOG_NAMESPACE = 'urn:xmpp:sec-label:catalog:2';
 	public static SEC_LABELS = 'SEC_LABELS';
 	public static SEC_LABELS_CATALOG = 'SEC_LABELS_CATALOG';
-	connection: jsxc.Connection;
+
+	private selectedSecurityLabel: SecurityLabelDescription = SecurityLabelsUtils.noSecurityLabel;
+	private securityLabelsMenuTemplate: JQuery;
+	private connection: jsxc.Connection;
 	/**
 	 * Jid with support for security labels
 	 *
@@ -69,9 +19,9 @@ class SecurityLabels {
 	async init(): Promise<void> {
 		this.connection = null;
 		this.securedJid = [];
-		this.info('Started initialization');
+		SecurityLabelsUtils.info('Started initialization');
 		if (this.isDisabled()) {
-			this.info('The plugin is disabled');
+			SecurityLabelsUtils.info('The plugin is disabled');
 			return;
 		}
 		this.connection = jsxc.xmpp.conn;
@@ -87,10 +37,10 @@ class SecurityLabels {
 			await this.waitForServerCapabilitiesIfNeeded();
 			await this.discoverSecurityLabelSupport();
 		} catch (error) {
-			this.error('Error discovering security label support', error);
+			SecurityLabelsUtils.error('Error discovering security label support', error);
 		}
 
-		this.info('Finished initialization');
+		SecurityLabelsUtils.info('Finished initialization');
 	}
 
 	private waitForServerCapabilitiesIfNeeded() {
@@ -98,7 +48,7 @@ class SecurityLabels {
 			const caps = jsxc.xmpp.conn.caps;
 			const domain = jsxc.xmpp.conn.domain;
 			if (!caps || !domain || typeof caps._knownCapabilities[caps._jidVerIndex[domain]] === 'undefined') {
-				this.info('Waiting for server capabilities');
+				SecurityLabelsUtils.info('Waiting for server capabilities');
 				$(document).one('caps.strophe', (ev, from) => {
 					if (from !== domain) {
 						// We are getting capabilities but not for the domain we are asking for
@@ -128,7 +78,7 @@ class SecurityLabels {
 		if (caps.hasFeatureByJid(domain, Strophe.NS[SecurityLabels.SEC_LABELS])) {
 			this.securedJid.push(domain);
 		} else {
-			this.info(`${domain} has no support for Security Labels`);
+			SecurityLabelsUtils.info(`${domain} has no support for Security Labels`);
 		}
 		const items = await AsyncAdapter.Disco.itemsAsync(domain, null);
 		const promises = $(items)
@@ -141,29 +91,17 @@ class SecurityLabels {
 	}
 
 	private async saveItemIfSecurityLabelsSupport(jid: string) {
-		this.info('query ' + jid + ' for security label support');
+		SecurityLabelsUtils.info('query ' + jid + ' for security label support');
 		const info: string = await AsyncAdapter.Disco.infoAsync(jid, null);
 		const securityLabelsFeature = $(info).find('feature[var="' + Strophe.NS[SecurityLabels.SEC_LABELS] + '"]');
 		if (securityLabelsFeature.length > 0) {
-			this.info('Security Labels support found on ' + jid);
+			SecurityLabelsUtils.info('Security Labels support found on ' + jid);
 			this.securedJid.push(jid);
 		} else {
-			this.info(`${jid} has no support for Security Labels`);
+			SecurityLabelsUtils.info(`${jid} has no support for Security Labels`);
 		}
 	}
 
-	private debug(msg: string, data?: object): void {
-		jsxc.debug(`XEP-0258 [Security labels]: ${msg}`, data);
-	}
-	private info(msg: string, data?: object): void {
-		jsxc.debug(`XEP-0258 [Security labels]: ${msg}`, data);
-	}
-	private error(msg: string, data?: object): void {
-		jsxc.error(`XEP-0258 [Security labels]: ${msg}`, data);
-	}
-	private warn(msg: string, data?: object): void {
-		jsxc.warn(`XEP-0258 [Security labels]: ${msg}`, data);
-	}
 	/**
 	 *Returns true if the security labels plugin is disabled in the chat options
 	 *
@@ -188,16 +126,24 @@ class SecurityLabels {
 		if (!win || win.length === 0 || !jsxc.xmpp.conn) {
 			return;
 		}
-		const textInput = win.find('.jsxc_textinput');
-		if (!textInput || textInput.length !== 1) {
+		const userInput = win.find('.jsxc_user_input_container');
+		if (!userInput || userInput.length !== 1) {
 			return;
 		}
-		textInput.prop('disabled', true);
+		userInput.addClass('jsxc_security_labels_disableInput');
 
 		await this.refreshSecurityLabelCatalog(bid);
-		textInput.prop('disabled', false);
+		userInput.removeClass('jsxc_security_labels_disableInput');
 	}
-	addMenuOptionToRefreshLabelCatalog(bid: string) {
+	/**
+	 * Add menu otions to the setting menu in the chat window
+	 * So far only the option to refresh the security labels catalog
+	 *
+	 * @param {string} bid
+	 * @returns
+	 * @memberof SecurityLabels
+	 */
+	addMenuOptionsForSecurityLabels(bid: string) {
 		// TODO: Add menu option to read the security labels available from a file
 		const win = jsxc.gui.window.get(bid);
 
@@ -226,132 +172,87 @@ class SecurityLabels {
 		win.find('.jsxc_settings ul').append($('<li>').append(refreshSecLabCat));
 	}
 	private async refreshSecurityLabelCatalog(bid: string) {
-
 		let catalog: SecurityCatalog;
 		try {
-			catalog = await this.requestSecurityLabelsCatalogToXmppServer(bid);
+			catalog = await SecurityLabelsUtils.requestSecurityLabelsCatalogToXmppServer(this.connection.jid, bid);
 		} catch (error) {
-			this.error(`Security Catalog download failed: ${error}`);
+			SecurityLabelsUtils.error(`Security Catalog download failed: ${error}`);
 			// TODO: Notify the user that we could not get the security labels catalog from the server
-			catalog = this.getDefaultCatalog();
+			catalog = SecurityLabelsUtils.getDefaultCatalog();
 		}
-		this.updateUiWithSecurityCatalog(bid, catalog);
-	}
-	private updateUiWithSecurityCatalog(bid: string, catalog: SecurityCatalog) {
-		// TODO: Refresh the UI with the Security Labels catalog
-		const win = jsxc.gui.window.get(bid);
-
-		if (!win || win.length === 0 || !jsxc.xmpp.conn) {
-			return;
-		}
-		const securityLabelsIcon = win.find('.jsxc_security_labels');
-		securityLabelsIcon.show();
+		this.selectedSecurityLabel = SecurityLabelsUtils.getDefaultSecurityLabel(catalog);
+		this.securityLabelsMenuTemplate = SecurityLabelsUtils.MenuBuilder.createCatalogMenu(catalog);
 	}
 
-	private getDefaultCatalog(): SecurityCatalog {
-		// This is the default security label catalog included in the specification https://xmpp.org/extensions/xep-0258.html v1.1.1 (Example 9)
-		const defaultCatalog: SecurityCatalog = {
-			to: 'example.com',
-			name: 'Default',
-			desc: 'an example set of labels',
-			restrict: false,
-			items: [
-				{
-					selector: 'Classified|SECRET',
-					securitylabel: {
-						label: { labelbody: '<esssecuritylabel xmlns="urn:xmpp:sec-label:ess:0">MQYCAQQGASk=</esssecuritylabel>' },
-						displayMarking: {
-							text: 'SECRET',
-							fgColor: 'black',
-							bgColor: 'red'
-						}
-					}
-				},
-				{
-					selector: 'Classified|CONFIDENTIAL',
-					securitylabel: {
-						label: { labelbody: '<esssecuritylabel xmlns="urn:xmpp:sec-label:ess:0">MQYCAQMGASk</esssecuritylabel>' },
-						displayMarking: {
-							text: 'CONFIDENTIAL',
-							fgColor: 'black',
-							bgColor: 'navy'
-						}
-					}
-				},
-				{
-					selector: 'Classified|RESTRICTED',
-					securitylabel: {
-						label: { labelbody: '<esssecuritylabel xmlns="urn:xmpp:sec-label:ess:0">MQYCAQIGASk=</esssecuritylabel>' },
-						displayMarking: {
-							text: 'RESTRICTED',
-							fgColor: 'black',
-							bgColor: 'aqua'
-						}
-					}
-				},
-				{
-					selector: 'UNCLASSIFIED',
-					default: true
-				}
-			]
-		};
-		return defaultCatalog;
-	}
-	private async sendSecurityLabelsCatalogRequestFaked(): Promise<SecurityCatalog> {
-		const catalog = this.getDefaultCatalog();
-		const promise = new Promise<SecurityCatalog>((resolve, reject) => {
-			setTimeout(() => resolve(catalog), 6000);
-		});
-		return promise;
-	}
-	private async requestSecurityLabelsCatalogToXmppServer(bid: string): Promise<SecurityCatalog> {
-		// TODO: For testing we always return the same hardcoded security labels catalog but we should ask the server
-		return this.sendSecurityLabelsCatalogRequestFaked();
-
-		this.info(`Start Requesting SecurityLabels Catalog for ` + bid);
-		const ownServer = this.connection.jid;
-		const iq = $iq({
-			to: ownServer,
-			type: 'get'
-		}).c('catalog', {
-			xmlns: Strophe.NS[SecurityLabels.SEC_LABELS],
-			to: bid
-		});
-
-		const stanza = await AsyncAdapter.strophe.sendIQAsync(iq);
-		this.info(`End Requesting SecurityLabels Catalog for ` + bid);
-		const catalog = this.parseCatalogStanza(stanza);
-		return catalog;
-	}
-	private parseCatalogStanza(stanza: Element): SecurityCatalog {
-		// TODO: we have to parse a received security labels catalog
-		const stanza$ = $(stanza);
-		const catalog = stanza$.find('catalog[xmlns="' + Strophe.NS[SecurityLabels.SEC_LABELS_CATALOG] + '"]');
-		return { to: '', desc: '', name: '', items: [] };
-	}
 	public shouldEnableSecurityLabelsGui(bid: string) {
-		// TODO: For testing we always enable security labels gui but we should check it with the server and service
-		return true;
 		if (this.isDisabled()) {
 			return false;
 		}
+		// TODO: For testing we always enable security labels gui but we should check it with the server and service
+		return true;
 		const caps = jsxc.xmpp.conn.caps;
 		const domain = jsxc.xmpp.conn.domain;
 		return caps.hasFeatureByJid(domain, Strophe.NS[SecurityLabels.SEC_LABELS_CATALOG]);
 	}
+	private getTooltipTextForSecurityLabelsIcon() {
+		// TODO: Localize this string
+		return `Current Sec. Label: ${this.selectedSecurityLabel.securityLabelDisplayText}`;
+	}
 	public addSecurityLabelSelectionIcon(bid: string) {
-		this.info(`creating security label selection icon`);
+		SecurityLabelsUtils.info(`creating security label selection icon`);
 		const win = jsxc.gui.window.get(bid);
 
 		if (!win || win.length === 0 || !jsxc.xmpp.conn) {
 			return;
 		}
-		const securityLabelsIcon = $('<div>');
-		securityLabelsIcon.addClass('jsxc_security_labels');
-		securityLabelsIcon.addClass('jsxc_disabled');
-		securityLabelsIcon.addClass('jsxc_icon');
 		const iconsContainer = win.find('.jsxc_textImput_right_icons_container');
+		const securityLabelsIcon = $('<div>');
+		securityLabelsIcon.addClass('jsxc_security_labels_icon');
+		securityLabelsIcon.addClass('jsxc_icon');
+		securityLabelsIcon.tooltip({
+			title: () => {
+				return this.getTooltipTextForSecurityLabelsIcon();
+			}
+		});
+		securityLabelsIcon.on('click', () => {
+			this.onSecurityLabelsIconClicked(win, iconsContainer, securityLabelsIcon);
+		});
+
 		iconsContainer.prepend(securityLabelsIcon);
+	}
+	private onSecurityLabelsIconClicked(win: JQuery, iconsContainer: JQuery, securityLabelsIcon: JQuery) {
+		win.trigger('extra.jsxc');
+		$('body').trigger('click');
+
+		if (!this.securityLabelsMenuTemplate) {
+			return false;
+		}
+		const previousMenu = win.find(`.${SecurityLabelsUtils.MenuBuilder.jsxc_security_labels_menu}`);
+		if (previousMenu.length > 0) {
+			return false;
+		}
+		let menu = this.securityLabelsMenuTemplate.clone(true, true);
+		iconsContainer.append(menu);
+		menu.menu();
+		menu.on('menuselect', (menuEvent, ui: { item: JQuery }) => {
+			this.selectedSecurityLabel = ui.item.data(
+				SecurityLabelsUtils.MenuBuilder.securitylabelDescriptionDataKey
+			) as SecurityLabelDescription;
+			SecurityLabelsUtils.info(`selected security label is ${this.selectedSecurityLabel}`);
+			menu.menu('destroy');
+			menu.remove();
+			menu = null;
+			return false;
+		});
+		$('body').one('click', () => {
+			if (menu) {
+				menu.menu('destroy');
+				menu.remove();
+			}
+		});
+		securityLabelsIcon.tooltip('hide');
+		// To prevent event from bubling up and hide the menus just shown
+		return false;
 	}
 }
 
@@ -361,9 +262,10 @@ $(document).on('stateUIChange.jsxc', function(ev, state) {
 		jsxc.xmpp.securityLabels.init();
 	}
 });
+
 $(document).on('update.gui.jsxc', async (ev, bid) => {
 	if (jsxc.xmpp.securityLabels.shouldEnableSecurityLabelsGui(bid)) {
-		jsxc.xmpp.securityLabels.addMenuOptionToRefreshLabelCatalog(bid);
+		jsxc.xmpp.securityLabels.addMenuOptionsForSecurityLabels(bid);
 		jsxc.xmpp.securityLabels.addSecurityLabelSelectionIcon(bid);
 		await jsxc.xmpp.securityLabels.fillSecurityLabelsAvailable(bid);
 	}
