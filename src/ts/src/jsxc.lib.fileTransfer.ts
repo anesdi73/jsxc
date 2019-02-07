@@ -153,7 +153,7 @@ class FileTransfer {
 	 */
 	private async defineMethodAndJidtoSendFile(bid: string, file: File) {
 		if (this.canSendFileWithHttpUpload(file.size)) {
-			return { transportMethod: 'httpUpload', jid: undefined };
+			return { transportMethod: 'httpUpload', jid: bid };
 		}
 		const jidForWebRtc = await this.getFullJidWithFeaturesAsync(bid, jsxc.webrtc.reqFileFeatures);
 		if (jidForWebRtc) {
