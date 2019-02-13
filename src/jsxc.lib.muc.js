@@ -1404,15 +1404,17 @@ jsxc.muc = {
          if (attachment) {
             body = null;
          }
-
-         jsxc.gui.window.postMessage({
+         var messageProperties = {
             bid: room,
             direction: direction,
             msg: body,
             stamp: stamp,
             sender: sender,
             attachment: attachment
-         });
+         };
+         // simple extension point
+         $(document).trigger(jsxc.xmpp.incomingBuildMessagePropertiesEvent, [message, messageProperties]);
+         jsxc.gui.window.postMessage(messageProperties);
       }
 
       var subject = $(message).find('subject');

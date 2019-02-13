@@ -27,7 +27,7 @@ class FileTransfer {
 	 * @param  {String} jid
 	 */
 	public startGuiAction(jid: string) {
-		this.showFileSelection(jid);
+		jsxc.gui.euccis.showFileSelection(jid, (file) => this.fileSelected(jid, file));
 	}
 	/**
 	 * Obtain the full jid for this bid with support for the specified features
@@ -93,34 +93,6 @@ class FileTransfer {
 		}
 	}
 
-	/**
-	 * Show file selector overlay.
-	 *
-	 * @memberOf jsxc.fileTransfer
-	 * @param  {String} jid
-	 */
-	private showFileSelection(jid: string) {
-		const bid = jsxc.jidToBid(jid);
-		const msg = $('<div><div><label><input type="file" name="files" /><label></div></div>');
-
-		msg.addClass('jsxc_chatmessage');
-
-		jsxc.gui.window.showOverlay(bid, msg, true);
-
-		// open file selection for user
-		msg.find('label').click();
-
-		msg.find('[type="file"]').change(ev => {
-			const input: HTMLInputElement = ev.target as HTMLInputElement;
-			const file = input.files[0];
-
-			if (!file) {
-				return;
-			}
-			jsxc.gui.window.hideOverlay(bid);
-			this.fileSelected(jid, file);
-		});
-	}
 	/**
 	 * File selection handler
 	 *

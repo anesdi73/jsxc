@@ -696,11 +696,9 @@ div.jsxc_settings {
 
 div.jsxc_transfer {
     background-image: image-url("padlock_open_black.svg");
-    
 
     &.jsxc_disabled {
         background-image: image-url("padlock_open_disabled_black.svg");
-        
     }
 
     &.jsxc_fin {

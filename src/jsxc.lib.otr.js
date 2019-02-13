@@ -23,27 +23,21 @@ jsxc.otr = {
       if (jsxc.otr.objects[bid].msgstate !== OTR.CONST.MSGSTATE_PLAINTEXT) {
          jsxc.otr.backup(bid);
       }
-
+      var msgProp;
       if (jsxc.otr.objects[bid].msgstate !== OTR.CONST.MSGSTATE_PLAINTEXT && !d.encrypted) {
-         jsxc.gui.window.postMessage({
+         msgProp = {
             bid: bid,
             direction: jsxc.Message.SYS,
             msg: $.t('Received_an_unencrypted_message') + '. [' + d.msg + ']',
-            encrypted: d.encrypted,
-            forwarded: d.forwarded,
-            stamp: d.stamp
-         });
+         };
+         jsxc.gui.window.postMessage(msgProp);
       } else {
-         jsxc.gui.window.postMessage({
-            _uid: d._uid,
+         msgProp = {
             bid: bid,
-            direction: jsxc.Message.IN,
-            msg: d.msg,
-            encrypted: d.encrypted,
-            forwarded: d.forwarded,
-            stamp: d.stamp,
-            attachment: d.attachment
-         });
+            direction: jsxc.Message.IN
+         };
+         Object.assign(msgProp, d);
+         jsxc.gui.window.postMessage(msgProp);
       }
    },
 
@@ -209,15 +203,13 @@ jsxc.otr = {
 
       // Receive message
       jsxc.otr.objects[bid].on('ui', function(msg, encrypted, meta) {
-         jsxc.otr.receiveMessage({
-            _uid: meta._uid,
+         var msgProp = {
             bid: bid,
             msg: msg,
             encrypted: encrypted === true,
-            stamp: meta.stamp,
-            forwarded: meta.forwarded,
-            attachment: meta.attachment
-         });
+         };
+         Object.assign(msgProp, meta);
+         jsxc.otr.receiveMessage(msgProp);
       });
 
       // Send message

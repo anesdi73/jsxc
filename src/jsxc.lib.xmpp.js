@@ -4,6 +4,8 @@
  * @namespace jsxc.xmpp
  */
 jsxc.xmpp = {
+   outgoingBuildStanzaEvent: 'outgoing.build.stanza.jsxc',
+   incomingBuildMessagePropertiesEvent: 'incoming.build.message.properties.jsxc',
    conn: null, // connection
 
    /**
@@ -911,19 +913,20 @@ jsxc.xmpp = {
 
       var stamp = (delay.length > 0) ? new Date(delay.attr('stamp')) : new Date();
       stamp = stamp.getTime();
-
+      var messageProperties;
       if (carbon) {
          var direction = (carbon.prop("tagName") === 'sent') ? jsxc.Message.OUT : jsxc.Message.IN;
          bid = jsxc.jidToBid((direction === jsxc.Message.OUT) ? $(message).attr('to') : from);
-
-         jsxc.gui.window.postMessage({
+         messageProperties = {
             bid: bid,
             direction: direction,
             msg: body,
             encrypted: false,
             forwarded: forwarded,
             stamp: stamp
-         });
+         };
+         $(document).trigger(jsxc.xmpp.incomingBuildMessagePropertiesEvent, [stanza, messageProperties]);
+         jsxc.gui.window.postMessage();
 
          return true;
 
@@ -954,15 +957,17 @@ jsxc.xmpp = {
 
          var msg = jsxc.removeHTML(body);
          msg = jsxc.escapeHTML(msg);
-
-         var messageObj = new jsxc.Message({
+         var msgProp = {
             bid: bid,
             msg: msg,
             direction: jsxc.Message.IN,
             encrypted: false,
             forwarded: forwarded,
             stamp: stamp
-         });
+         };
+         //We want to enrich the message properties.  
+         $(document).trigger(jsxc.xmpp.incomingBuildMessagePropertiesEvent, [stanza, msgProp]);
+         var messageObj = new jsxc.Message(msgProp);
          messageObj.save();
 
          return true;
@@ -1000,17 +1005,18 @@ jsxc.xmpp = {
       if (attachment) {
          body = null;
       }
-
       if (jsxc.otr.objects.hasOwnProperty(bid) && body) {
          // @TODO check for file upload url after decryption
-         jsxc.otr.objects[bid].receiveMsg(body, {
+         messageProperties = {
             _uid: mid,
-            stamp: stamp,
             forwarded: forwarded,
+            stamp: stamp,
             attachment: attachment
-         });
+         };
+         $(document).trigger(jsxc.xmpp.incomingBuildMessagePropertiesEvent, [stanza, messageProperties]);
+         jsxc.otr.objects[bid].receiveMsg(body, messageProperties);
       } else {
-         jsxc.gui.window.postMessage({
+         messageProperties = {
             _uid: mid,
             bid: bid,
             direction: jsxc.Message.IN,
@@ -1019,7 +1025,9 @@ jsxc.xmpp = {
             forwarded: forwarded,
             stamp: stamp,
             attachment: attachment
-         });
+         };
+         $(document).trigger(jsxc.xmpp.incomingBuildMessagePropertiesEvent, [stanza, messageProperties]);
+         jsxc.gui.window.postMessage(messageProperties);
       }
 
       // preserve handler
@@ -1387,6 +1395,8 @@ jsxc.xmpp = {
             xmlns: Strophe.NS.CHATSTATES
          });
       }
+      // generic extension mechanism   
+      $(document).trigger(jsxc.xmpp.outgoingBuildStanzaEvent, [xmlMsg, message]);
 
       jsxc.xmpp.conn.send(xmlMsg);
    },

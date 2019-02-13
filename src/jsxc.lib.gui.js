@@ -2053,6 +2053,10 @@ jsxc.gui.dialog = {
  * @namespace jsxc.gui.window
  */
 jsxc.gui.window = {
+
+   messageRenderEvent: 'message.render.jsxc',
+   outgoingPostMessageEvent: 'outgoing.post.message.jsxc',
+
    /**
     * Init a window skeleton
     *
@@ -2167,12 +2171,14 @@ jsxc.gui.window = {
          if (ev.which !== 13 || ev.shiftKey || !$(this).val()) {
             return;
          }
-
-         jsxc.gui.window.postMessage({
+         var message = {
             bid: bid,
             direction: jsxc.Message.OUT,
-            msg: $(this).val()
-         });
+            msg: $(this).val(),
+         };
+         // simple extension point
+         win.trigger(jsxc.gui.window.outgoingPostMessageEvent, message);
+         jsxc.gui.window.postMessage(message);
 
          $(this).css('height', '').val('');
 
@@ -2762,7 +2768,7 @@ jsxc.gui.window = {
          msgTsDiv = $("<div>");
       msgDiv.addClass('jsxc_chatmessage jsxc_' + direction);
       msgDiv.attr('id', uid.replace(/:/g, '-'));
-      msgDiv.html('<div>' + msg + '</div>');
+      msgDiv.html('<div class="jsxc_textmsg">' + msg + '</div>');
       msgTsDiv.addClass('jsxc_timestamp');
       msgTsDiv.text(jsxc.getFormattedTime(message.stamp));
 
@@ -2910,6 +2916,8 @@ jsxc.gui.window = {
             showThumbnail(i + 1);
          }, i * 200);
       }
+      // simple extension point
+      win.trigger(jsxc.gui.window.messageRenderEvent, [message, msg, msgDiv]);
    },
 
    /**
@@ -3138,12 +3146,15 @@ jsxc.gui.window = {
       navigator.geolocation.getCurrentPosition(function(position) {
          var coords = position.coords;
          var geouri = 'geo:' + coords.latitude + ',' + coords.longitude + ';u=' + coords.accuracy;
-
-         jsxc.gui.window.postMessage({
+         var message = {
             bid: bid,
             direction: jsxc.Message.OUT,
             msg: geouri
-         });
+         };
+         // simple extension point
+         var win = jsxc.gui.window.get(bid);
+         win.trigger(jsxc.gui.window.outgoingPostMessageEvent, message);
+         jsxc.gui.window.postMessage(message);
       }, function(error) {
          jsxc.debug('Couldnt get location', error);
 

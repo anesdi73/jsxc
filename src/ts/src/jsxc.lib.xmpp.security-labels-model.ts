@@ -49,7 +49,7 @@ interface CatalogItem {
 	 * @type {SecurityLabel}
 	 * @memberof CatalogItem
 	 */
-	securitylabel?: SecurityLabel;
+	securityLabel?: SecurityLabel;
 	/**
 	 * One and only one of the items may have a default attribute with value of true.
 	 * The client should default the label selection to this item in cases where the user has not selected an item
@@ -80,4 +80,10 @@ interface DisplayMarking {
 interface SecurityLabelDescription {
 	securityLabel?: SecurityLabel;
 	securityLabelDisplayText: string;
+}
+
+interface ChatWindowSettingsMenuProperties {
+	textKey: string;
+	cssClass?: string;
+	onClick: (menuItem: JQuery) => void|Promise<void>;
 }

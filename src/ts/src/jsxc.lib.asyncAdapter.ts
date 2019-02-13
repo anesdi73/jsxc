@@ -115,6 +115,17 @@ namespace AsyncAdapter {
 		});
 		return promise;
 	}
+	export function readFileAsTextAsync(file: File): Promise<string> {
+		const promise = new Promise<string>((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onload = ev => {
+				const data: string = reader.result as string;
+				resolve(data);
+			};
+			reader.readAsText(file);
+		});
+		return promise;
+	}
 	export namespace Disco {
 		export function infoAsync(jid: string, node: string,  timeout?: number) {
 			const promise = new Promise<string>((resolve, reject) => {

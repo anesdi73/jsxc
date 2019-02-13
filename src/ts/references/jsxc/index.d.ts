@@ -44,6 +44,7 @@ declare namespace jsxc {
 		stamp?: number;
 		msg?: string;
 		attachment?: MessageAttachment;
+		securityLabel?:SecurityLabel
 	}
 	interface LoginForm {
 		form: JQuery<HTMLElement>;
@@ -96,6 +97,8 @@ declare namespace jsxc {
 	}
 
 	namespace xmpp {
+		const outgoingBuildStanzaEvent: string;
+		const incomingBuildMessagePropertiesEvent: string;
 		var conn: Connection;
 		var connected: boolean;
 		/**
@@ -218,6 +221,8 @@ declare namespace jsxc {
 		}
 
 		namespace window {
+			const messageRenderEvent: string;
+			const outgoingPostMessageEvent: string;
 			function postMessage(message: MessageProperties): Message;
 			function updateProgress(message: Message, currentSize: number, totalSize: number): void;
 			/**
