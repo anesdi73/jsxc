@@ -47,6 +47,11 @@ module.exports = function(grunt) {
                cwd: 'lib/magnific-popup/dist/',
                src: ['*.css'],
                dest: '<%= target %>/css/'
+            }, {
+                expand: true,
+                cwd: 'lib/jquery-ui.images/',
+                src: ['*.*'],
+                dest: '<%= target %>/css/images'
             }]
          }
       },
