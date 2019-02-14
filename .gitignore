@@ -16,6 +16,7 @@ dev/
 /lib/i18next/
 /lib/jquery-i18next/
 /lib/magnific-popup/
+/lib/strophejs/
 .idea
 .github.json
 /.tscache/
