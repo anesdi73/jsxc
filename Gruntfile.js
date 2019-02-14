@@ -48,10 +48,10 @@ module.exports = function(grunt) {
                src: ['*.css'],
                dest: '<%= target %>/css/'
             }, {
-                expand: true,
-                cwd: 'lib/jquery-ui.images/',
-                src: ['*.*'],
-                dest: '<%= target %>/css/images'
+               expand: true,
+               cwd: 'lib/jquery-ui.images/',
+               src: ['*.*'],
+               dest: '<%= target %>/css/images'
             }]
          }
       },
