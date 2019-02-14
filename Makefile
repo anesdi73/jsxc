@@ -2,7 +2,7 @@
 all: install .github.json
 	grunt build
 install:
-	git submodule update --init
+#	git submodule update --init
 	npm install
 	bower install
 # Does not exist on normal machines, create dummy
